@@ -9,6 +9,9 @@ use Symfony\Component\Routing\Annotation\Route;
 class TestController
 {
 
+    /**
+     * @Route("/", name="index")
+     */
     public function index()
     {
         dd("Ca fonctionne");  // dd regroupe les fonctions dump and die
@@ -26,7 +29,7 @@ class TestController
         // chaque fonction du controller qui prend en charge une requête doit tjrs retourner une instance de la classe response, 
         // qui vient elle aussi du package http-foundation
 
-       // $age = $request->attributes->get('age'); cette ligne est remplaçable par le paramètre $age
+        // $age = $request->attributes->get('age'); cette ligne est remplaçable par le paramètre $age
         return new Response("Vous avez $age ans !");
     }
 }
