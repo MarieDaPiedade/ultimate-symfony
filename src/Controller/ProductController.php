@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\Product;
 use App\Form\ProductType;
 use App\Repository\ProductRepository;
 use App\Repository\CategoryRepository;
@@ -10,8 +11,12 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Form\FormFactoryInterface;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\String\Slugger\SluggerInterface;
+use Symfony\Component\Validator\Constraints\Collection;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -60,7 +65,56 @@ class ProductController extends AbstractController
     /**
      * @Route("/admin/product/{id}/edit", name="product_edit")
      */
-    public function edit($id, ProductRepository $productRepository, Request $request, EntityManagerInterface $em, UrlGeneratorInterface $urlGenerator) {
+    public function edit($id, ProductRepository $productRepository, Request $request, EntityManagerInterface $em, ValidatorInterface $validator)
+    {
+
+        /* Utiliser Validator de façon simple
+        $resultat = $validator->validate($age, [
+            new LesserThanOrEqual( [
+                'value' => 90,
+                'message' => "L'âge doit être inférieur à {{compared_value}} mais vous avez donné {{value}}"
+            ]),
+            new GreaterThan( [
+                'value' => 0,
+                'message' => "L'âge doit être supérieur à 0"
+            ])
+            ]); */
+
+        /* Utiliser validator avec des données complexes (ex: tableaux)
+        $client = [
+            'nom' => 'Chamla',
+            'prenom' => 'Lior',
+            'voiture' => [
+                'marque' => 'Hyundai',
+                'couleur' => 'Noire'
+            ]
+        ];
+
+        $collection = new Collection([
+            'nom' => new NotBlank(['message' => "Le nom ne doit pas être vide !"]),
+            'prenom' => [
+                new NotBlank(['message' => "Le prénom ne doit pas être vide !"]),
+                new Length(['min' => 3, 'minMessage' =>"Le prénom ne doit pas faire moins de 3 caractères"])
+            ],
+            'voiture' => new Collection([
+                'marque' => new NotBlank(['message' => "La marque de la voiture est obligatoire"]),
+                'couleur' => new NotBlank(['message' => "La couleur de la voiture est obligatoire"])
+            ])
+        ]); 
+
+        $resultat = $validator->validate($client, $collection); */
+
+        /*      $product = new Product;
+        $product->setName("Salut");
+        $resultat = $validator->validate($product);
+        
+        if ($resultat->count() > 0) {
+            dd("Il y a des erreurs", $resultat);
+        }
+        dd("Tout vas bien"); */
+
+
+
         $product = $productRepository->find($id);
 
         // avec la fonction createform, on peut passer un produit ($product) et le form travaillera sur ce produit là
@@ -71,7 +125,7 @@ class ProductController extends AbstractController
 
         $form->handleRequest($request);
 
-        if($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
 
             // on créé l'url de redirection
@@ -85,9 +139,9 @@ class ProductController extends AbstractController
 
             //prend en paramètre le nom de la route et les param nécessaires
             return $this->redirectToRoute('product_show', [
-                    'category_slug' => $product->getCategory()->getSlug(),
-                   'slug' => $product->getSlug()
-                ]);
+                'category_slug' => $product->getCategory()->getSlug(),
+                'slug' => $product->getSlug()
+            ]);
         }
 
         $formView = $form->createView();
@@ -116,7 +170,7 @@ class ProductController extends AbstractController
         $form->handleRequest($request);
 
         // si le form est soumis, on extrait les données sous forme de produit
-        if ($form->isSubmitted()) {
+        if ($form->isSubmitted() && $form->isValid()) {
             // on récupère les données du formulaire, le form a alors créé un nouvel objet product avec les données récupérées 
             // grâce à l'option mise dans le builder qui comprend que les données soumises sont celles de la classe Product
             $product = $form->getData();

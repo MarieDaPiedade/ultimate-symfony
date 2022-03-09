@@ -11,6 +11,7 @@ use Symfony\Component\Form\CallbackTransformer;
 use Symfony\Component\Form\FormBuilderInterface;
 use App\Form\DataTransformer\CentimesTransformer;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Form\Extension\Core\Type\UrlType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -24,9 +25,8 @@ class ProductType extends AbstractType
         $builder
             ->add('name', TextType::class, [
                 'label' => 'Nom du produit',
-                'attr' => [
-                    'placeholder' => 'Tapez le nom du produit'
-                ]
+                'attr' => ['placeholder' => 'Tapez le nom du produit'],
+                'required' => false,
             ])
             ->add('shortDescription', TextareaType::class, [
                 'label' => 'Description courte',
@@ -36,9 +36,9 @@ class ProductType extends AbstractType
             ])
             ->add('price', MoneyType::class, [
                 'label' => 'Prix du produit',
-                'attr' => [
-                    'placeholder' => 'Tapez le prix du produit en euros'
-                ]
+                'attr' => ['placeholder' => 'Tapez le prix du produit en euros'],
+                'divisor' => 100,
+                'required' => false,
                 // pour faire la même chose qu'avec l'évènement en bcp plus rapide ; , 'divisor' => 100
             ])
             ->add('mainPicture', UrlType::class, [
@@ -54,7 +54,7 @@ class ProductType extends AbstractType
                 }
             ]);
         // On utilise l'évènement crée dans la classe CentimesTransformer pour agir sur le prix
-        $builder->get('price')->addModelTransformer(new CentimesTransformer);
+        //$builder->get('price')->addModelTransformer(new CentimesTransformer);
 
         // Lorsque l'on veut rajouter un évènement
 
