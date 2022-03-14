@@ -19,7 +19,11 @@
 						<em class="fas fa-shopping-cart"></em>
 						Panier ({{ cartService.total }})</a>
 				</li>
+				{# Si on est connecté #}
 				{% if app.user %}
+					<li class="nav-item">
+						<a href="{{path('purchase_index')}}" class="nav-link">Mes commandes</a>
+					</li>
 					<li class="nav-item">
 						<a href={{ path('security_logout') }} class="btn btn-danger">Logout</a>
 					</li>

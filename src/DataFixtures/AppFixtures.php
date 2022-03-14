@@ -4,9 +4,12 @@ namespace App\DataFixtures;
 
 use Faker\Factory;
 use App\Entity\User;
+use DateTimeImmutable;
 use App\Entity\Product;
 use Liior\Faker\Prices;
 use App\Entity\Category;
+use App\Entity\Purchase;
+use App\Entity\PurchaseLine;
 use Bluemmb\Faker\PicsumPhotosProvider;
 use Doctrine\Persistence\ObjectManager;
 use Doctrine\Bundle\FixturesBundle\Fixture;
@@ -42,6 +45,8 @@ class AppFixtures extends Fixture
 
         $manager->persist($admin);
 
+        $users = [];
+
         // on crée des utilisateurs
         for ($u = 0; $u < 5; $u++) {
             $user = new User();
@@ -50,8 +55,13 @@ class AppFixtures extends Fixture
                 ->setFullName($faker->name())
                 ->setPassword($hash);
 
+            // on crée un tab pour les users pour l'utiliser dans la création d'une commande
+            $users[] = $user;
+
             $manager->persist($user);
         }
+
+        $products = [];
 
         // on créé nos trois catégories
         for ($c = 0; $c < 3; $c++) {
@@ -71,7 +81,47 @@ class AppFixtures extends Fixture
                     ->setShortDescription($faker->paragraph())
                     ->setMainPicture($faker->imageUrl(400, 400, true));
 
+                $products[] = $product;
+
                 $manager->persist($product);
+            }
+
+            // $startTime = new \DateTimeImmutable();
+
+            //on créé nos commandes
+            for ($p = 0; $p < mt_rand(20, 40); $p++) {
+                $purchase = new Purchase();
+                $purchase->setFullName($faker->name)
+                    ->setAdress($faker->streetAddress)
+                    ->setPostalCode($faker->postcode)
+                    ->setCity($faker->city)
+                    ->setUser($faker->randomElement($users))  // on choisis de rattaché un utilisateurs de façon aléatoire grâce au tab d'users créé précédemment
+                    ->setTotal(mt_rand(2000, 30000))
+                    ->setPurchasedAt(new DateTimeImmutable('2022-03-11 13:18:11'));
+
+                $selectedProducts = $faker->randomElements($products, mt_rand(3, 5));
+
+                //rajouter les produits à une commande
+                foreach ($selectedProducts as $product) {
+                    $purchaseLine = new PurchaseLine;
+                    $purchaseLine->setProduct($product)
+                                 ->setQuantity(mt_rand(1,3))
+                                 ->setProductName($product->getName())
+                                 ->setProductPrice($product->getPrice())
+                                 ->setTotal(
+                                     $purchaseLine->getProductPrice() * $purchaseLine->getQuantity()
+                                 )
+                                 ->setPurchase($purchase);
+
+                            $manager->persist($purchaseLine);
+                }
+
+                // dans 90% des cas, renvoyer status PAID
+                if ($faker->boolean(90)) {
+                    $purchase->setStatus(Purchase::STATUS_PAID);
+                }
+
+                $manager->persist($purchase);
             }
         }
 

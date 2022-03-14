@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Cart\CartService;
+use App\Form\CartConfirmationType;
 use App\Repository\ProductRepository;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,7 +35,7 @@ class CartController extends AbstractController
         // $this->addFlash('success', "Le produit a bien été ajouté au panier");
 
         // l'info returnToCart a été mise dans index.html.twig de Cart
-        if($request->query->get('returnToCart')) {
+        if ($request->query->get('returnToCart')) {
             return $this->redirectToRoute('cart_show');
         }
 
@@ -51,12 +52,15 @@ class CartController extends AbstractController
     public function show(CartService $cartService)
     {
 
+        $form = $this->createForm(CartConfirmationType::class);
+
         $detailedCart = $cartService->getDetailedCartItems();
         $total = $cartService->getTotal();
 
         return $this->render('cart/index.html.twig', [
             'items' => $detailedCart,
             'total' => $total,
+            'confirmationForm' => $form->createView()
         ]);
     }
 
@@ -81,7 +85,8 @@ class CartController extends AbstractController
     /**
      * @Route("/cart/decrement/{id}", name="cart_decrement", requirements={"id": "\d+"})
      */
-    public function decrement($id, CartService $cartService, ProductRepository $productRepository) {
+    public function decrement($id, CartService $cartService, ProductRepository $productRepository)
+    {
 
         $product = $productRepository->find($id);
 

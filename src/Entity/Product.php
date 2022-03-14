@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Mapping\ClassMetadata;
@@ -54,6 +56,17 @@ class Product
      * @Assert\Length(min=20, minMessage="La description courte doit quand même faire au moins 20 caractères")
      */
     private $shortDescription;
+
+    /**
+     * @ORM\OneToMany(targetEntity=PurchaseLine::class, mappedBy="product")
+     */
+    private $purchaseLines;
+
+
+    public function __construct()
+    {
+        $this->purchaseLines = new ArrayCollection();
+    }
 
     /*     public static function loadValidatorMetadata(ClassMetadata $metadata)
     {
@@ -145,4 +158,35 @@ class Product
 
         return $this;
     }
+
+    /**
+     * @return Collection<int, PurchaseLine>
+     */
+    public function getPurchaseLines(): Collection
+    {
+        return $this->purchaseLines;
+    }
+
+    public function addPurchaseLine(PurchaseLine $purchaseLine): self
+    {
+        if (!$this->purchaseLines->contains($purchaseLine)) {
+            $this->purchaseLines[] = $purchaseLine;
+            $purchaseLine->setProduct($this);
+        }
+
+        return $this;
+    }
+
+    public function removePurchaseLine(PurchaseLine $purchaseLine): self
+    {
+        if ($this->purchaseLines->removeElement($purchaseLine)) {
+            // set the owning side to null (unless already changed)
+            if ($purchaseLine->getProduct() === $this) {
+                $purchaseLine->setProduct(null);
+            }
+        }
+
+        return $this;
+    }
+
 }

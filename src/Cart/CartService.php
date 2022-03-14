@@ -17,12 +17,28 @@ class CartService
         $this->productRepository = $productRepository;
     }
 
+    protected function getCart()
+    {
+        return $this->session->get('cart', []);
+    }
+
+    protected function saveCart(array $cart)
+    {
+        $this->session->set('cart', $cart);
+    }
+
+    public function empty()
+    {
+        $this->saveCart([]);
+    }
+
     public function add(int $id)
     {
 
         // 1. Retrouver le panier dans la session (sous forme de tableau)
         // 2. Si il n'existe pas encore, alors prendre un tableau vide
-        $cart = $this->session->get('cart', []);
+        //$cart = $this->session->get('cart', []);
+        $cart = $this->getCart();
 
         // 3. Voir si le produit ($id) existe déjà dans le tableau 
         // 4. Si c'est le cas, simplement augmenter la quantité 
@@ -39,7 +55,7 @@ class CartService
 
     public function remove(int $id)
     {
-        $cart = $this->session->get('cart', []);
+        $cart = $this->getCart();
 
         //pour supprimer l'élément avec l'id sélectionné
         unset($cart[$id]);
@@ -50,7 +66,7 @@ class CartService
 
     public function decrement(int $id)
     {
-        $cart = $this->session->get('cart', []);
+        $cart = $this->getCart();
 
         if (!array_key_exists($id, $cart)) {
             return;
@@ -65,14 +81,14 @@ class CartService
         // Soit le produit est à plus de 1, alors il faut décrémenter
         $cart[$id]--;
 
-        $this->session->set('cart', $cart);
+        $this->saveCart($cart);
     }
 
     public function getTotal(): int
     {
         $total = 0;
 
-        foreach ($this->session->get('cart', []) as $id => $qty) {
+        foreach ($this->getCart() as $id => $qty) {
             $product = $this->productRepository->find($id);
 
             // si il n'y a pas de produit, on veut continuer la boucle (pour éviter d'avoir une exception)
@@ -84,6 +100,11 @@ class CartService
         return $total;
     }
 
+    /**
+     * Undocumented function
+     *
+     * @return CartItem[]
+     */
     public function getDetailedCartItems(): array
     {
         $detailedCart = [];
