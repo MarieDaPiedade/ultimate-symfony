@@ -2,10 +2,8 @@
 
 namespace App\Controller\Purchase;
 
-use DateTimeImmutable;
 use App\Entity\Purchase;
 use App\Cart\CartService;
-use App\Entity\PurchaseLine;
 use App\Form\CartConfirmationType;
 use App\Purchase\PurchasePersister;
 use Doctrine\ORM\EntityManagerInterface;
@@ -32,7 +30,7 @@ class PurchaseConfirmationController extends AbstractController
 
     /**
      * @Route("/purchase/confirm", name="purchase_confirm")
-     * @IsGranted('ROLE_USER', message="Vous devez être connecté pour confirmer une commande")
+     * @IsGranted("ROLE_USER", message="Vous devez être connecté pour confirmer une commande")
      */
     public function confirm(Request $request)
     {
@@ -47,7 +45,7 @@ class PurchaseConfirmationController extends AbstractController
             // Message Flash puis redirection -> flashBagInterface
             //$flashBag->add('warning', 'Vous devez remplir le formulaire de confirmation');
             $this->addFlash('warning', 'Vous devez remplir le formulaire de confirmation');
-            //return new RedirectResponse($this->router->generate('cart_show'));
+
             return $this->redirectToRoute('cart_show');
         }
 
@@ -59,8 +57,6 @@ class PurchaseConfirmationController extends AbstractController
         // 4. Si il n'y a pas de produit dans mon panier : dégager -> SessionInterface, CartService
         $cartItems = $this->cartService->getDetailedCartItems();
         if (count($cartItems) === 0) {
-            // $flashBag->add('warning', 'Vous ne pouvez pas confirmer une commande avec un panier vide');
-            // return new RedirectResponse($this->router->generate('cart_show'));
             $this->addFlash('warning', 'Vous ne pouvez pas confirmer une commande avec un panier vide');
             return $this->redirectToRoute('cart_show');
         }
@@ -72,12 +68,8 @@ class PurchaseConfirmationController extends AbstractController
 
         $this->persister->storePurchase($purchase); // on demande à l'enregistrer
 
-        $this->cartService->empty();
-
-
-        //$flashBag->add('success', 'La commande a bien été enregistrée');
-        // return new RedirectResponse($this->router->generate('purchase_index'));
-        $this->addFlash('success', 'La commande a bien été enregistrée');
-        return $this->redirectToRoute('purchase_index');
+        return $this->redirectToRoute('purchase_payment_form', [
+            'id' => $purchase->getId(),
+        ]);
     }
 }
