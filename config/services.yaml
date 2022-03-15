@@ -36,3 +36,13 @@ services:
     arguments:
       $publicKey: "%env(STRIPE_PUBLIC_KEY)%"
       $secretKey: "%env(STRIPE_SECRET_KEY)%"
+
+  App\EventDispatcher\PrenomListener:
+    tags:
+      [
+        {
+          name: kernel.event_listener,
+          event: kernel.request,
+          method: addPrenomToAttributes,
+        },
+      ]
