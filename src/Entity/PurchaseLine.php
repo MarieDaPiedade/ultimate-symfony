@@ -74,6 +74,10 @@ class PurchaseLine
     {
         $this->purchase = $purchase;
 
+        if(!$purchase->getPurchaseLines()->contains($this)) {
+            $purchase->addPurchaseLine($this);
+        }
+
         return $this;
     }
 
